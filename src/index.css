@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: rgb(var(--primary));
+  --color-primary-hover: rgb(var(--primary-hover));
+  --color-primary-light: rgb(var(--primary-light));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+  --font-vazir: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+:root {
+  /* Default: indigo (indigo-500: 99 102 241, hover 600: 79 70 229, light 400: 129 140 248) */
+  --primary: 99 102 241;
+  --primary-hover: 79 70 229;
+  --primary-light: 129 140 248;
+  --primary-foreground: 255 255 255;
+  --primary-rgb: 99, 102, 241;
+}
+
+* {
+  font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom dark scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Glassmorphism & subtle dark glow effects */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 65, 85, 0.6);
+}
+
+.glass-card {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+}
+
+/* Theme primary classes helper */
+.bg-brand-primary {
+  background-color: rgb(var(--primary)) !important;
+}
+
+.bg-brand-primary\/10 {
+  background-color: rgba(var(--primary), 0.1) !important;
+}
+
+.bg-brand-primary\/20 {
+  background-color: rgba(var(--primary), 0.2) !important;
+}
+
+.text-brand-primary {
+  color: rgb(var(--primary)) !important;
+}
+
+.border-brand-primary {
+  border-color: rgb(var(--primary)) !important;
+}
+
+.hover\:bg-brand-primary-hover:hover {
+  background-color: rgb(var(--primary-hover)) !important;
+}
+
+/* Mobile Safe Areas */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 16px);
+}

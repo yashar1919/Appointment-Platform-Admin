@@ -1,0 +1,6 @@
+{
+  "name": "Unitimely Admin - پنل مدیریت کلینیک",
+  "description": "پنل اختصاصی مدیریت نوبت‌دهی کلینیک‌های زیبایی و خدمات با طراحی مدرن دارک مود، راست‌چین و بهینه‌سازی شده برای موبایل",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
