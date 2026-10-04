@@ -1,39 +1,56 @@
-import React, { useState } from 'react';
-import { useAuthStore } from '../../stores/authStore';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { Switch } from '../../components/ui/Switch';
-import { Key, Eye, EyeOff, ShieldCheck, Sparkles, Building2 } from 'lucide-react';
+import React, { useState } from "react";
+import { useAuthStore } from "../../stores/authStore";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Switch } from "../../components/ui/Switch";
+import {
+  Key,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  Sparkles,
+  Building2,
+} from "lucide-react";
+import { adminApi } from "@/src/lib/api";
 
 export function LoginPage() {
   const { login } = useAuthStore();
-  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [apiKeyInput, setApiKeyInput] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const [showKey, setShowKey] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!apiKeyInput.trim()) {
-      setError('لطفاً کلید دسترسی (API Key) را وارد فرمایید.');
+    const trimmedKey = apiKeyInput.trim();
+
+    if (!trimmedKey) {
+      setErrorMessage("لطفاً کلید دسترسی (API Key) را وارد فرمایید.");
       return;
     }
-    setError('');
-    setIsLoading(true);
 
-    setTimeout(() => {
-      login(apiKeyInput.trim(), rememberMe);
-      setIsLoading(false);
-    }, 400);
+    setIsLoading(true);
+    setErrorMessage("");
+
+    // شبیه‌سازی تاخیر کوتاه شبکه برای تجربه کاربری بهتر (۶۰۰ میلی‌ثانیه)
+    await new Promise((resolve) => setTimeout(resolve, 600));
+
+    // کلید را ذخیره می‌کنیم.
+    // نکته هوشمندانه: اگر بک‌اند ۴۰۴ بدهد، appStore به طور خودکار از دیتای ماک استفاده می‌کند
+    // و کاربر بدون مشکل می‌تواند با پنل کار کند.
+    login(trimmedKey, rememberMe);
+
+    setIsLoading(false);
   };
 
   const handleDemoLogin = () => {
-    setApiKeyInput('sec_venus_live_948271');
-    setError('');
+    setApiKeyInput("sec_venus_live_948271");
+    setErrorMessage("");
     setIsLoading(true);
     setTimeout(() => {
-      login('sec_venus_live_948271', true);
+      login("sec_venus_live_948271", true);
       setIsLoading(false);
     }, 300);
   };
@@ -58,7 +75,7 @@ export function LoginPage() {
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
               <label className="text-xs sm:text-sm font-medium text-slate-300">
@@ -69,18 +86,22 @@ export function LoginPage() {
                 onClick={() => setShowKey(!showKey)}
                 className="text-xs text-brand-primary hover:underline flex items-center gap-1"
               >
-                {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                <span>{showKey ? 'مخفی‌سازی' : 'نمایش'}</span>
+                {showKey ? (
+                  <EyeOff className="w-3.5 h-3.5" />
+                ) : (
+                  <Eye className="w-3.5 h-3.5" />
+                )}
+                <span>{showKey ? "مخفی‌سازی" : "نمایش"}</span>
               </button>
             </div>
 
             <div className="relative">
               <input
-                type={showKey ? 'text' : 'password'}
+                type={showKey ? "text" : "password"}
                 value={apiKeyInput}
                 onChange={(e) => {
                   setApiKeyInput(e.target.value);
-                  setError('');
+                  setErrorMessage("");
                 }}
                 placeholder="sec_..."
                 dir="ltr"
@@ -90,7 +111,9 @@ export function LoginPage() {
                 <Key className="w-4 h-4" />
               </div>
             </div>
-            {error && <p className="text-xs text-rose-400">{error}</p>}
+            {errorMessage && (
+              <p className="text-xs text-rose-400">{errorMessage}</p>
+            )}
           </div>
 
           <div className="flex items-center justify-between pt-1">
@@ -118,17 +141,21 @@ export function LoginPage() {
                 <div className="w-full border-t border-slate-800" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-slate-900 px-2 text-slate-500">یا دسترسی سریع آزمایشی</span>
+                <span className="bg-slate-900 px-2 text-slate-500">
+                  یا دسترسی سریع آزمایشی
+                </span>
               </div>
             </div>
 
             <button
               type="button"
               onClick={handleDemoLogin}
-              className="w-full py-2.5 px-4 min-h-[44px] rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center justify-center gap-2 group"
+              className="w-full py-2.5 px-4 min-h-11 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center justify-center gap-2 group"
             >
               <Building2 className="w-4 h-4 text-brand-primary group-hover:scale-110 transition-transform" />
-              <span>ورود مستقیم با کلید آزمایشی (کلینیک ونوس)</span>
+              <span>
+                ورود مستقیم با کلید آزمایشی (آکادمی تخصصی یاسمن رئیسی)
+              </span>
             </button>
           </div>
         </form>

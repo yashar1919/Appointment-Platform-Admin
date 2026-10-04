@@ -1,14 +1,5 @@
-import { create } from 'zustand';
-import { adminApi } from '../lib/api';
-import {
-  INITIAL_APPOINTMENTS,
-  INITIAL_CATEGORIES,
-  INITIAL_DASHBOARD_STATS,
-  INITIAL_LOCATIONS,
-  INITIAL_SERVICES,
-  INITIAL_STAFF,
-  INITIAL_TENANT,
-} from '../lib/mockData';
+import { create } from "zustand";
+import { adminApi } from "../lib/api";
 import {
   Appointment,
   AppointmentStatus,
@@ -18,12 +9,12 @@ import {
   ServiceCategory,
   Staff,
   Tenant,
-} from '../types';
+} from "../types";
 
 export interface ToastNotification {
   id: string;
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: "success" | "error" | "info";
 }
 
 interface AppState {
@@ -32,52 +23,63 @@ interface AppState {
   categories: ServiceCategory[];
   staff: Staff[];
   locations: Location[];
-  tenant: Tenant;
+  tenant: Tenant | null;
   stats: DashboardStats;
   isLoading: boolean;
   isApiConnected: boolean;
   toasts: ToastNotification[];
 
-  // Core Actions
   fetchInitialData: () => Promise<void>;
-  updateAppointmentStatus: (id: string, status: AppointmentStatus) => Promise<boolean>;
+  updateAppointmentStatus: (
+    id: string,
+    status: AppointmentStatus,
+  ) => Promise<boolean>;
   createAppointment: (data: Partial<Appointment>) => Promise<Appointment>;
-  
-  createService: (data: Omit<Service, 'id' | 'tenant_id'>) => Promise<Service>;
+  createService: (data: Omit<Service, "id" | "tenant_id">) => Promise<Service>;
   updateService: (id: string, data: Partial<Service>) => Promise<boolean>;
   deleteService: (id: string) => Promise<boolean>;
-
   createCategory: (data: Partial<ServiceCategory>) => Promise<ServiceCategory>;
-  updateCategory: (id: string, data: Partial<ServiceCategory>) => Promise<boolean>;
+  updateCategory: (
+    id: string,
+    data: Partial<ServiceCategory>,
+  ) => Promise<boolean>;
   deleteCategory: (id: string) => Promise<boolean>;
-
-  createStaff: (data: Omit<Staff, 'id'>) => Promise<Staff>;
+  createStaff: (data: Omit<Staff, "id">) => Promise<Staff>;
   updateStaff: (id: string, data: Partial<Staff>) => Promise<boolean>;
   deleteStaff: (id: string) => Promise<boolean>;
-
-  createLocation: (data: Omit<Location, 'id'>) => Promise<Location>;
+  createLocation: (data: Omit<Location, "id">) => Promise<Location>;
   updateLocation: (id: string, data: Partial<Location>) => Promise<boolean>;
   deleteLocation: (id: string) => Promise<boolean>;
-
   updateTenant: (data: Partial<Tenant>) => Promise<boolean>;
-  showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+  showToast: (message: string, type?: "success" | "error" | "info") => void;
   dismissToast: (id: string) => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
-  appointments: INITIAL_APPOINTMENTS,
-  services: INITIAL_SERVICES,
-  categories: INITIAL_CATEGORIES,
-  staff: INITIAL_STAFF,
-  locations: INITIAL_LOCATIONS,
-  tenant: INITIAL_TENANT,
-  stats: INITIAL_DASHBOARD_STATS,
-  isLoading: false,
+  appointments: [],
+  services: [],
+  categories: [],
+  staff: [],
+  locations: [],
+  tenant: null,
+  stats: {
+    today_appointments: 0,
+    today_revenue: 0,
+    pending_bookings: 0,
+    completed_bookings: 0,
+    total_customers: 0,
+    weekly_stats: [],
+  },
+  isLoading: true,
   isApiConnected: false,
   toasts: [],
 
-  showToast: (message: string, type: 'success' | 'error' | 'info' = 'success') => {
-    const id = Date.now().toString() + Math.random().toString(36).substring(2, 5);
+  showToast: (
+    message: string,
+    type: "success" | "error" | "info" = "success",
+  ) => {
+    const id =
+      Date.now().toString() + Math.random().toString(36).substring(2, 5);
     set((state) => ({
       toasts: [...state.toasts, { id, message, type }],
     }));
@@ -93,44 +95,78 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   fetchInitialData: async () => {
-    set({ isLoading: true });
+    set({ isLoading: true, isApiConnected: false });
     try {
-      // Attempt to hit live FastAPI server
-      const [appointments, services, categories, staff, locations, tenant, stats] =
+      const [appointmentsRes, servicesRes, staffRes, locationsRes, tenantRes] =
         await Promise.all([
           adminApi.getAppointments(),
           adminApi.getServices(),
-          adminApi.getCategories(),
           adminApi.getStaff(),
-          adminApi.getLocations(),
-          adminApi.getTenant(),
-          adminApi.getDashboardStats(),
+          adminApi.getLocations().catch(() => []),
+          adminApi.getTenant().catch(() => null),
         ]);
 
+      const normalizedAppointments = (appointmentsRes || []).map((apt: any) => {
+        const staffMember = (staffRes || []).find(
+          (s: any) => s.id === apt.staff_id,
+        );
+        const serviceObj = (servicesRes || []).find(
+          (s: any) => s.id === apt.service_id,
+        );
+        const locationObj = (locationsRes || []).find(
+          (l: any) => l.id === apt.location_id,
+        );
+
+        return {
+          id: apt.id,
+          reference_code: apt.reference || apt.reference_code || "UNKNOWN",
+          starts_at: apt.starts_at,
+          ends_at: apt.ends_at,
+          status: apt.status,
+          service_name: apt.service_name || serviceObj?.name || "خدمت نامشخص",
+          price: Number(apt.service_price ?? apt.price ?? 0),
+          staff_id: apt.staff_id,
+          location_id: apt.location_id,
+          service_id: apt.service_id || "unknown",
+          customer_name: apt.customer_name || "مشتری",
+          customer_phone: apt.customer_phone || "---",
+          duration_minutes:
+            apt.service_duration_minutes || serviceObj?.duration_minutes || 30,
+          staff_name: staffMember?.name || apt.staff_name || "پرسنل کلینیک",
+          location_name: locationObj?.name || apt.location_name || "شعبه",
+        };
+      });
+
+      const normalizedServices = (servicesRes || []).map((svc: any) => ({
+        ...svc,
+        price: Number(svc.price || 0),
+        is_active: svc.is_active !== undefined ? svc.is_active : true,
+      }));
+
       set({
-        appointments: appointments || INITIAL_APPOINTMENTS,
-        services: services || INITIAL_SERVICES,
-        categories: categories || INITIAL_CATEGORIES,
-        staff: staff || INITIAL_STAFF,
-        locations: locations || INITIAL_LOCATIONS,
-        tenant: tenant || INITIAL_TENANT,
-        stats: stats || INITIAL_DASHBOARD_STATS,
+        appointments: normalizedAppointments,
+        services: normalizedServices,
+        staff: staffRes || [],
+        locations: locationsRes || [],
+        categories: [],
+        tenant: tenantRes || undefined,
         isApiConnected: true,
         isLoading: false,
       });
-    } catch {
-      // Standalone mode / local fallback: use mock data without interrupting the secretary
+    } catch (error) {
+      console.error("❌ خطای حیاتی در اتصال به سرور:", error);
       set({
-        appointments: get().appointments.length ? get().appointments : INITIAL_APPOINTMENTS,
-        services: get().services.length ? get().services : INITIAL_SERVICES,
-        categories: get().categories.length ? get().categories : INITIAL_CATEGORIES,
-        staff: get().staff.length ? get().staff : INITIAL_STAFF,
-        locations: get().locations.length ? get().locations : INITIAL_LOCATIONS,
-        tenant: get().tenant ? get().tenant : INITIAL_TENANT,
-        stats: get().stats ? get().stats : INITIAL_DASHBOARD_STATS,
+        appointments: [],
+        services: [],
+        staff: [],
+        locations: [],
         isApiConnected: false,
         isLoading: false,
       });
+      get().showToast(
+        "خطا در اتصال به سرور. لطفاً اتصال اینترنت یا سرور بک‌اند را بررسی کنید.",
+        "error",
+      );
     }
   },
 
@@ -140,41 +176,29 @@ export const useAppStore = create<AppState>((set, get) => ({
         await adminApi.updateAppointmentStatus(id, status);
       }
     } catch (err) {
-      console.warn('API sync warning (using local update):', err);
+      console.warn("API sync warning:", err);
+      get().showToast("خطا در برقراری ارتباط با سرور", "error");
+      return false;
     }
 
     set((state) => {
       const updated = state.appointments.map((apt) =>
-        apt.id === id ? { ...apt, status } : apt
+        apt.id === id ? { ...apt, status } : apt,
       );
-
-      // Recalculate stats
-      const pendingCount = updated.filter((a) => a.status === 'pending').length;
-      const completedCount = updated.filter((a) => a.status === 'completed').length;
-      const totalRev = updated
-        .filter((a) => a.status === 'completed' || a.status === 'confirmed')
-        .reduce((sum, a) => sum + (a.price || 0), 0);
-
-      return {
-        appointments: updated,
-        stats: {
-          ...state.stats,
-          pending_bookings: pendingCount,
-          completed_bookings: completedCount,
-          today_revenue: totalRev,
-        },
-      };
+      return { appointments: updated };
     });
 
     const statusLabels: Record<AppointmentStatus, string> = {
-      confirmed: 'تأیید شد',
-      cancelled: 'لغو شد',
-      completed: 'تکمیل شد',
-      no_show: 'عدم مراجعه ثبت شد',
-      pending: 'به حالت در انتظار بازگشت',
+      confirmed: "تأیید شد",
+      cancelled: "لغو شد",
+      completed: "تکمیل شد",
+      no_show: "عدم مراجعه ثبت شد",
+      pending: "در انتظار تأیید",
     };
-
-    get().showToast(`وضعیت نوبت با موفقیت به "${statusLabels[status]}" تغییر یافت.`, 'success');
+    get().showToast(
+      `وضعیت نوبت به "${statusLabels[status]}" تغییر یافت.`,
+      "success",
+    );
     return true;
   },
 
@@ -182,46 +206,40 @@ export const useAppStore = create<AppState>((set, get) => ({
     let created: Appointment;
     try {
       if (get().isApiConnected) {
-        created = await adminApi.createAppointment(data);
+        const rawRes = await adminApi.createAppointment(data);
+        const staffMember = get().staff.find((s) => s.id === rawRes.staff_id);
+        const service = get().services.find((s) => s.id === rawRes.service_id);
+        const loc = get().locations.find((l) => l.id === rawRes.location_id);
+
+        created = {
+          ...rawRes,
+          reference_code:
+            (rawRes as any).reference ||
+            rawRes.reference_code ||
+            `APT-${Date.now()}`,
+          customer_name: data.customer_name || rawRes.customer_name,
+          customer_phone: data.customer_phone || rawRes.customer_phone,
+          staff_name: staffMember?.name || rawRes.staff_name || "پرسنل کلینیک",
+          location_name: loc?.name || rawRes.location_name || "شعبه",
+          service_name: service?.name || rawRes.service_name || "خدمت",
+          price: Number((rawRes as any).service_price ?? rawRes.price ?? 0),
+        } as Appointment;
       } else {
-        throw new Error('Fallback');
+        throw new Error("Offline");
       }
     } catch {
-      // Local creation
-      const service = get().services.find((s) => s.id === data.service_id);
-      const staffMember = get().staff.find((s) => s.id === data.staff_id);
-      const loc = get().locations.find((l) => l.id === data.location_id);
-
-      created = {
-        id: 'apt-' + Date.now().toString(),
-        customer_name: data.customer_name || 'مشتری جدید',
-        customer_phone: data.customer_phone || '۰۹۱۲۰۰۰۰۰۰۰',
-        service_id: data.service_id || get().services[0]?.id || 'srv-1',
-        staff_id: data.staff_id || get().staff[0]?.id || 'stf-1',
-        location_id: data.location_id || get().locations[0]?.id || 'loc-1',
-        starts_at: data.starts_at || new Date().toISOString(),
-        ends_at: data.ends_at || new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-        status: (data.status as AppointmentStatus) || 'confirmed',
-        price: data.price ?? (service?.price || 0),
-        reference_code: `UNT-${Math.floor(1000 + Math.random() * 9000)}`,
-        notes: data.notes || '',
-        service_name: service?.name || 'خدمت انتخابی',
-        staff_name: staffMember?.name || 'پرسنل کلینیک',
-        location_name: loc?.name || 'شعبه کلینیک',
-        duration_minutes: service?.duration_minutes || 45,
-      };
+      get().showToast("خطا در ثبت نوبت. اتصال به سرور برقرار نیست.", "error");
+      throw new Error("Failed to create appointment");
     }
 
     set((state) => ({
       appointments: [created, ...state.appointments],
-      stats: {
-        ...state.stats,
-        today_appointments: state.stats.today_appointments + 1,
-        pending_bookings: created.status === 'pending' ? state.stats.pending_bookings + 1 : state.stats.pending_bookings,
-      },
     }));
 
-    get().showToast(`نوبت "${created.customer_name}" با کد پیگیری ${created.reference_code} ثبت گردید.`, 'success');
+    get().showToast(
+      `نوبت "${created.customer_name}" با کد ${created.reference_code} ثبت شد.`,
+      "success",
+    );
     return created;
   },
 
@@ -231,211 +249,191 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (get().isApiConnected) {
         newService = await adminApi.createService(data);
       } else {
-        throw new Error('Fallback');
+        throw new Error("Offline");
       }
     } catch {
-      newService = {
-        ...data,
-        id: 'srv-' + Date.now(),
-        tenant_id: get().tenant.id,
-      };
+      get().showToast("خطا در ثبت خدمت", "error");
+      throw new Error("Failed");
     }
     set((state) => ({ services: [...state.services, newService] }));
-    get().showToast(`خدمت "${newService.name}" با موفقیت افزوده شد.`, 'success');
+    get().showToast(`خدمت "${newService.name}" افزوده شد.`, "success");
     return newService;
   },
 
   updateService: async (id, data) => {
     try {
-      if (get().isApiConnected) {
-        await adminApi.updateService(id, data);
-      }
-    } catch (err) {
-      console.warn('API sync warning:', err);
+      if (get().isApiConnected) await adminApi.updateService(id, data);
+    } catch {
+      get().showToast("خطا در ویرایش خدمت", "error");
+      return false;
     }
     set((state) => ({
-      services: state.services.map((s) => (s.id === id ? { ...s, ...data } : s)),
+      services: state.services.map((s) =>
+        s.id === id ? { ...s, ...data } : s,
+      ),
     }));
-    get().showToast('تغییرات خدمت با موفقیت ذخیره شد.', 'success');
+    get().showToast("تغییرات خدمت ذخیره شد.", "success");
     return true;
   },
 
   deleteService: async (id) => {
     try {
-      if (get().isApiConnected) {
-        await adminApi.deleteService(id);
-      }
-    } catch (err) {
-      console.warn('API sync warning:', err);
+      if (get().isApiConnected) await adminApi.deleteService(id);
+    } catch {
+      get().showToast("خطا در حذف خدمت", "error");
+      return false;
     }
-    set((state) => ({
-      services: state.services.filter((s) => s.id !== id),
-    }));
-    get().showToast('خدمت مورد نظر با موفقیت حذف شد.', 'info');
+    set((state) => ({ services: state.services.filter((s) => s.id !== id) }));
+    get().showToast("خدمت حذف شد.", "info");
     return true;
   },
 
   createCategory: async (data) => {
-    let cat: ServiceCategory;
+    let newCat: ServiceCategory;
     try {
       if (get().isApiConnected) {
-        cat = await adminApi.createCategory(data);
+        newCat = await adminApi.createCategory(data);
       } else {
-        throw new Error('Fallback');
+        throw new Error("Offline");
       }
     } catch {
-      cat = {
-        id: 'cat-' + Date.now(),
-        name: data.name || 'دسته‌بندی جدید',
-        description: data.description || '',
-        display_order: get().categories.length + 1,
-      };
+      get().showToast("خطا در ثبت دسته‌بندی", "error");
+      throw new Error("Failed");
     }
-    set((state) => ({ categories: [...state.categories, cat] }));
-    get().showToast(`دسته‌بندی "${cat.name}" ایجاد شد.`, 'success');
-    return cat;
+    set((state) => ({ categories: [...state.categories, newCat] }));
+    get().showToast(`دسته‌بندی "${newCat.name}" افزوده شد.`, "success");
+    return newCat;
   },
 
   updateCategory: async (id, data) => {
     try {
-      if (get().isApiConnected) {
-        await adminApi.updateCategory(id, data);
-      }
-    } catch (err) {
-      console.warn('API sync warning:', err);
+      if (get().isApiConnected) await adminApi.updateCategory(id, data);
+    } catch {
+      get().showToast("خطا در ویرایش دسته‌بندی", "error");
+      return false;
     }
     set((state) => ({
-      categories: state.categories.map((c) => (c.id === id ? { ...c, ...data } : c)),
+      categories: state.categories.map((c) =>
+        c.id === id ? { ...c, ...data } : c,
+      ),
     }));
-    get().showToast('دسته‌بندی ویرایش گردید.', 'success');
+    get().showToast("دسته‌بندی ویرایش شد.", "success");
     return true;
   },
 
   deleteCategory: async (id) => {
     try {
-      if (get().isApiConnected) {
-        await adminApi.deleteCategory(id);
-      }
-    } catch (err) {
-      console.warn('API sync warning:', err);
+      if (get().isApiConnected) await adminApi.deleteCategory(id);
+    } catch {
+      get().showToast("خطا در حذف دسته‌بندی", "error");
+      return false;
     }
     set((state) => ({
       categories: state.categories.filter((c) => c.id !== id),
     }));
-    get().showToast('دسته‌بندی حذف شد.', 'info');
+    get().showToast("دسته‌بندی حذف شد.", "info");
     return true;
   },
 
   createStaff: async (data) => {
-    let staffMember: Staff;
+    let newStaff: Staff;
     try {
       if (get().isApiConnected) {
-        staffMember = await adminApi.createStaff(data);
+        newStaff = await adminApi.createStaff(data);
       } else {
-        throw new Error('Fallback');
+        throw new Error("Offline");
       }
     } catch {
-      staffMember = {
-        ...data,
-        id: 'stf-' + Date.now(),
-      };
+      get().showToast("خطا در ثبت پرسنل", "error");
+      throw new Error("Failed");
     }
-    set((state) => ({ staff: [...state.staff, staffMember] }));
-    get().showToast(`همکار جدید "${staffMember.name}" افزوده شد.`, 'success');
-    return staffMember;
+    set((state) => ({ staff: [...state.staff, newStaff] }));
+    get().showToast(`پرسنل "${newStaff.name}" افزوده شد.`, "success");
+    return newStaff;
   },
 
   updateStaff: async (id, data) => {
     try {
-      if (get().isApiConnected) {
-        await adminApi.updateStaff(id, data);
-      }
-    } catch (err) {
-      console.warn('API sync warning:', err);
+      if (get().isApiConnected) await adminApi.updateStaff(id, data);
+    } catch {
+      get().showToast("خطا در ویرایش پرسنل", "error");
+      return false;
     }
     set((state) => ({
       staff: state.staff.map((s) => (s.id === id ? { ...s, ...data } : s)),
     }));
-    get().showToast('اطلاعات پرسنل به‌روز شد.', 'success');
+    get().showToast("اطلاعات پرسنل به‌روز شد.", "success");
     return true;
   },
 
   deleteStaff: async (id) => {
     try {
-      if (get().isApiConnected) {
-        await adminApi.deleteStaff(id);
-      }
-    } catch (err) {
-      console.warn('API sync warning:', err);
+      if (get().isApiConnected) await adminApi.deleteStaff(id);
+    } catch {
+      get().showToast("خطا در حذف پرسنل", "error");
+      return false;
     }
-    set((state) => ({
-      staff: state.staff.filter((s) => s.id !== id),
-    }));
-    get().showToast('پرسنل از لیست حذف شد.', 'info');
+    set((state) => ({ staff: state.staff.filter((s) => s.id !== id) }));
+    get().showToast("پرسنل حذف شد.", "info");
     return true;
   },
 
   createLocation: async (data) => {
-    let loc: Location;
+    let newLoc: Location;
     try {
       if (get().isApiConnected) {
-        loc = await adminApi.createLocation(data);
+        newLoc = await adminApi.createLocation(data);
       } else {
-        throw new Error('Fallback');
+        throw new Error("Offline");
       }
     } catch {
-      loc = {
-        ...data,
-        id: 'loc-' + Date.now(),
-      };
+      get().showToast("خطا در ثبت شعبه", "error");
+      throw new Error("Failed");
     }
-    set((state) => ({ locations: [...state.locations, loc] }));
-    get().showToast(`شعبه "${loc.name}" با موفقیت ثبت شد.`, 'success');
-    return loc;
+    set((state) => ({ locations: [...state.locations, newLoc] }));
+    get().showToast(`شعبه "${newLoc.name}" ثبت شد.`, "success");
+    return newLoc;
   },
 
   updateLocation: async (id, data) => {
     try {
-      if (get().isApiConnected) {
-        await adminApi.updateLocation(id, data);
-      }
-    } catch (err) {
-      console.warn('API sync warning:', err);
+      if (get().isApiConnected) await adminApi.updateLocation(id, data);
+    } catch {
+      get().showToast("خطا در ویرایش شعبه", "error");
+      return false;
     }
     set((state) => ({
-      locations: state.locations.map((l) => (l.id === id ? { ...l, ...data } : l)),
+      locations: state.locations.map((l) =>
+        l.id === id ? { ...l, ...data } : l,
+      ),
     }));
-    get().showToast('اطلاعات شعبه به‌روز شد.', 'success');
+    get().showToast("اطلاعات شعبه به‌روز شد.", "success");
     return true;
   },
 
   deleteLocation: async (id) => {
     try {
-      if (get().isApiConnected) {
-        await adminApi.deleteLocation(id);
-      }
-    } catch (err) {
-      console.warn('API sync warning:', err);
+      if (get().isApiConnected) await adminApi.deleteLocation(id);
+    } catch {
+      get().showToast("خطا در حذف شعبه", "error");
+      return false;
     }
-    set((state) => ({
-      locations: state.locations.filter((l) => l.id !== id),
-    }));
-    get().showToast('شعبه حذف گردید.', 'info');
+    set((state) => ({ locations: state.locations.filter((l) => l.id !== id) }));
+    get().showToast("شعبه حذف شد.", "info");
     return true;
   },
 
   updateTenant: async (data) => {
     try {
       if (get().isApiConnected) {
-        await adminApi.updateTenant(data);
+        const updated = await adminApi.updateTenant(data);
+        set({ tenant: updated });
       }
-    } catch (err) {
-      console.warn('API sync warning:', err);
+    } catch {
+      get().showToast("خطا در ذخیره مشخصات کلینیک", "error");
+      return false;
     }
-    set((state) => ({
-      tenant: { ...state.tenant, ...data },
-    }));
-    get().showToast('مشخصات کسب‌وکار و ساعات کاری با موفقیت ذخیره شد.', 'success');
+    get().showToast("مشخصات کلینیک با موفقیت ذخیره شد.", "success");
     return true;
   },
 }));

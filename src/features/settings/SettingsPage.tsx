@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
-import { useAppStore } from '../../stores/appStore';
-import { useAuthStore } from '../../stores/authStore';
-import { useThemeStore } from '../../stores/themeStore';
-import { DEFAULT_WORKING_HOURS } from '../../lib/constants';
-import { WorkingDay } from '../../types';
-import { ThemeColorPicker } from '../../components/layout/ThemeColorPicker';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { Switch } from '../../components/ui/Switch';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
-import { Modal } from '../../components/ui/Modal';
+import React, { useState } from "react";
+import { useAppStore } from "../../stores/appStore";
+import { useAuthStore } from "../../stores/authStore";
+import { useThemeStore } from "../../stores/themeStore";
+import { DEFAULT_WORKING_HOURS } from "../../lib/constants";
+import { WorkingDay } from "../../types";
+import { ThemeColorPicker } from "../../components/layout/ThemeColorPicker";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Switch } from "../../components/ui/Switch";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "../../components/ui/Card";
+import { Modal } from "../../components/ui/Modal";
 import {
   Building2,
   Clock,
@@ -24,7 +29,7 @@ import {
   RotateCcw,
   Sparkles,
   LogOut,
-} from 'lucide-react';
+} from "lucide-react";
 
 export function SettingsPage() {
   const { tenant, updateTenant, showToast } = useAppStore();
@@ -32,23 +37,23 @@ export function SettingsPage() {
   const { currentPalette } = useThemeStore();
 
   // Business Profile states
-  const [name, setName] = useState(tenant.name || '');
-  const [phone, setPhone] = useState(tenant.phone || '');
-  const [address, setAddress] = useState(tenant.address || '');
-  const [logo, setLogo] = useState(tenant.logo || '');
-  const [instagram, setInstagram] = useState(tenant.instagram || '');
-  const [description, setDescription] = useState(tenant.description || '');
+  const [name, setName] = useState(tenant?.name || "");
+  const [phone, setPhone] = useState(tenant?.phone || "");
+  const [address, setAddress] = useState(tenant?.address || "");
+  const [logo, setLogo] = useState(tenant?.logo || "");
+  const [instagram, setInstagram] = useState(tenant?.instagram || "");
+  const [description, setDescription] = useState(tenant?.description || "");
 
   // Working Hours states
   const [workingHours, setWorkingHours] = useState<WorkingDay[]>(
-    tenant.working_hours && tenant.working_hours.length > 0
+    tenant?.working_hours && tenant.working_hours.length > 0
       ? tenant.working_hours
-      : DEFAULT_WORKING_HOURS
+      : DEFAULT_WORKING_HOURS,
   );
 
   // API Key edit modal
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
-  const [newApiKey, setNewApiKey] = useState(apiKey || '');
+  const [newApiKey, setNewApiKey] = useState(apiKey || "");
   const [hasCopiedKey, setHasCopiedKey] = useState(false);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -66,7 +71,7 @@ export function SettingsPage() {
   const handleWorkingHourChange = (
     index: number,
     field: keyof WorkingDay,
-    val: boolean | string
+    val: boolean | string,
   ) => {
     const updated = [...workingHours];
     updated[index] = {
@@ -86,7 +91,7 @@ export function SettingsPage() {
     if (apiKey) {
       navigator.clipboard.writeText(apiKey);
       setHasCopiedKey(true);
-      showToast('کلید دسترسی با موفقیت در کلیپ‌بورد کپی شد.', 'success');
+      showToast("کلید دسترسی با موفقیت در کلیپ‌بورد کپی شد.", "success");
       setTimeout(() => setHasCopiedKey(false), 2500);
     }
   };
@@ -95,7 +100,7 @@ export function SettingsPage() {
     if (newApiKey.trim()) {
       login(newApiKey.trim());
       setIsApiKeyModalOpen(false);
-      showToast('کلید جدید API با موفقیت تنظیم شد.', 'success');
+      showToast("کلید جدید API با موفقیت تنظیم شد.", "success");
     }
   };
 
@@ -119,9 +124,12 @@ export function SettingsPage() {
               <Palette className="w-4 h-4" />
             </div>
             <div>
-              <CardTitle className="text-base">تم و رنگ اصلی پنل منشی</CardTitle>
+              <CardTitle className="text-base">
+                تم و رنگ اصلی پنل منشی
+              </CardTitle>
               <p className="text-xs text-slate-400 mt-0.5">
-                تغییر لحظه‌ای رنگ برند و عناصر اصلی سامانه به یکی از ۱۰ پالت استاندارد
+                تغییر لحظه‌ای رنگ برند و عناصر اصلی سامانه به یکی از ۱۰ پالت
+                استاندارد
               </p>
             </div>
           </div>
@@ -139,9 +147,12 @@ export function SettingsPage() {
               <Building2 className="w-4 h-4" />
             </div>
             <div>
-              <CardTitle className="text-base">اطلاعات کسب‌وکار و پروفایل کلینیک</CardTitle>
+              <CardTitle className="text-base">
+                اطلاعات کسب‌وکار و پروفایل کلینیک
+              </CardTitle>
               <p className="text-xs text-slate-400 mt-0.5">
-                نام کلینیک، شماره‌های تماس، لوگو و بیوگرافی نمایش داده شده به مراجعین
+                نام کلینیک، شماره‌های تماس، لوگو و بیوگرافی نمایش داده شده به
+                مراجعین
               </p>
             </div>
           </div>
@@ -223,7 +234,9 @@ export function SettingsPage() {
               <Clock className="w-4 h-4" />
             </div>
             <div>
-              <CardTitle className="text-base">ساعات کاری و روزهای پذیرش</CardTitle>
+              <CardTitle className="text-base">
+                ساعات کاری و روزهای پذیرش
+              </CardTitle>
               <p className="text-xs text-slate-400 mt-0.5">
                 تعیین روزهای باز و ساعات شروع و پایان پذیرش نوبت‌ها
               </p>
@@ -238,13 +251,15 @@ export function SettingsPage() {
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80"
               >
                 <div className="flex items-center justify-between sm:justify-start gap-4 sm:w-40">
-                  <span className="text-sm font-bold text-slate-200">{wh.day_label}</span>
+                  <span className="text-sm font-bold text-slate-200">
+                    {wh.day_label}
+                  </span>
                   <Switch
                     checked={wh.is_open}
                     onCheckedChange={(checked) =>
-                      handleWorkingHourChange(idx, 'is_open', checked)
+                      handleWorkingHourChange(idx, "is_open", checked)
                     }
-                    label={wh.is_open ? 'دایر' : 'تعطیل'}
+                    label={wh.is_open ? "دایر" : "تعطیل"}
                   />
                 </div>
 
@@ -256,7 +271,11 @@ export function SettingsPage() {
                         type="time"
                         value={wh.open_time}
                         onChange={(e) =>
-                          handleWorkingHourChange(idx, 'open_time', e.target.value)
+                          handleWorkingHourChange(
+                            idx,
+                            "open_time",
+                            e.target.value,
+                          )
                         }
                         className="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-slate-100 text-xs font-mono"
                       />
@@ -268,7 +287,11 @@ export function SettingsPage() {
                         type="time"
                         value={wh.close_time}
                         onChange={(e) =>
-                          handleWorkingHourChange(idx, 'close_time', e.target.value)
+                          handleWorkingHourChange(
+                            idx,
+                            "close_time",
+                            e.target.value,
+                          )
                         }
                         className="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-slate-100 text-xs font-mono"
                       />
@@ -283,7 +306,11 @@ export function SettingsPage() {
             ))}
 
             <div className="flex justify-end pt-3">
-              <Button onClick={handleSaveWorkingHours} variant="primary" size="md">
+              <Button
+                onClick={handleSaveWorkingHours}
+                variant="primary"
+                size="md"
+              >
                 ذخیره ساعات کاری
               </Button>
             </div>
@@ -299,9 +326,12 @@ export function SettingsPage() {
               <Key className="w-4 h-4" />
             </div>
             <div>
-              <CardTitle className="text-base">کلید دسترسی و احراز هویت API</CardTitle>
+              <CardTitle className="text-base">
+                کلید دسترسی و احراز هویت API
+              </CardTitle>
               <p className="text-xs text-slate-400 mt-0.5">
-                کلید امنیتی ارسال شده در هدر X-Admin-Api-Key جهت برقراری ارتباط با بک‌اند FastAPI
+                کلید امنیتی ارسال شده در هدر X-Admin-Api-Key جهت برقراری ارتباط
+                با بک‌اند FastAPI
               </p>
             </div>
           </div>
@@ -309,9 +339,13 @@ export function SettingsPage() {
         <CardContent>
           <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-1">
-              <span className="text-xs text-slate-400 block">کلید فعلی سیستم:</span>
+              <span className="text-xs text-slate-400 block">
+                کلید فعلی سیستم:
+              </span>
               <code className="text-xs font-mono text-brand-primary bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 inline-block dir-ltr">
-                {apiKey ? `${apiKey.substring(0, 8)}••••••••••••` : 'کلیدی تنظیم نشده'}
+                {apiKey
+                  ? `${apiKey.substring(0, 8)}••••••••••••`
+                  : "کلیدی تنظیم نشده"}
               </code>
             </div>
 
@@ -339,7 +373,7 @@ export function SettingsPage() {
                 variant="secondary"
                 size="sm"
                 onClick={() => {
-                  setNewApiKey(apiKey || '');
+                  setNewApiKey(apiKey || "");
                   setIsApiKeyModalOpen(true);
                 }}
                 className="text-xs"
@@ -385,7 +419,11 @@ export function SettingsPage() {
           />
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" size="md" onClick={() => setIsApiKeyModalOpen(false)}>
+            <Button
+              variant="outline"
+              size="md"
+              onClick={() => setIsApiKeyModalOpen(false)}
+            >
               انصراف
             </Button>
             <Button variant="primary" size="md" onClick={handleSaveApiKey}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Plus,
   Palette,
@@ -7,12 +7,12 @@ import {
   Clock,
   Sparkles,
   PhoneCall,
-} from 'lucide-react';
-import { useAppStore } from '../../stores/appStore';
-import { formatShamsiDate } from '../../lib/utils';
-import { Button } from '../ui/Button';
-import { Modal } from '../ui/Modal';
-import { ThemeColorPicker } from './ThemeColorPicker';
+} from "lucide-react";
+import { useAppStore } from "../../stores/appStore";
+import { formatShamsiDate } from "../../lib/utils";
+import { Button } from "../ui/Button";
+import { Modal } from "../ui/Modal";
+import { ThemeColorPicker } from "./ThemeColorPicker";
 
 interface AppHeaderProps {
   onOpenNewAppointment: () => void;
@@ -32,17 +32,23 @@ export function AppHeader({ onOpenNewAppointment }: AppHeaderProps) {
         <div className="flex items-center gap-3">
           <div className="md:hidden flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-brand-primary/20 border border-brand-primary/40 flex items-center justify-center shrink-0">
-              {tenant.logo ? (
-                <img src={tenant.logo} alt={tenant.name} className="w-9 h-9 rounded-xl object-cover" />
+              {tenant?.logo ? (
+                <img
+                  src={tenant?.logo}
+                  alt={tenant?.name}
+                  className="w-9 h-9 rounded-xl object-cover"
+                />
               ) : (
                 <span className="text-brand-primary font-black text-sm">U</span>
               )}
             </div>
             <div className="min-w-0">
-              <h2 className="text-xs font-bold text-slate-100 truncate max-w-[150px]">
-                {tenant.name}
+              <h2 className="text-xs font-bold text-slate-100 truncate max-w-37.5">
+                {tenant?.name}
               </h2>
-              <p className="text-[10px] text-slate-400 truncate">{todayShamsi}</p>
+              <p className="text-[10px] text-slate-400 truncate">
+                {todayShamsi}
+              </p>
             </div>
           </div>
 
@@ -63,12 +69,16 @@ export function AppHeader({ onOpenNewAppointment }: AppHeaderProps) {
             {isApiConnected ? (
               <>
                 <Wifi className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="hidden sm:inline text-emerald-400">بک‌اند زنده</span>
+                <span className="hidden sm:inline text-emerald-400">
+                  بک‌اند زنده
+                </span>
               </>
             ) : (
               <>
                 <WifiOff className="w-3.5 h-3.5 text-amber-400" />
-                <span className="hidden sm:inline text-amber-400">آفلاین (دمو)</span>
+                <span className="hidden sm:inline text-amber-400">
+                  آفلاین (دمو)
+                </span>
               </>
             )}
           </button>
@@ -89,8 +99,10 @@ export function AppHeader({ onOpenNewAppointment }: AppHeaderProps) {
             size="sm"
             className="h-10 px-3 sm:px-4 rounded-xl shadow-lg flex items-center gap-1.5"
           >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span className="text-xs sm:text-sm font-semibold">ثبت نوبت تلفنی</span>
+            <Plus className="w-4 h-4 stroke-3" />
+            <span className="text-xs sm:text-sm font-semibold">
+              ثبت نوبت تلفنی
+            </span>
           </Button>
         </div>
       </header>
@@ -106,7 +118,11 @@ export function AppHeader({ onOpenNewAppointment }: AppHeaderProps) {
         <div className="py-2">
           <ThemeColorPicker />
           <div className="mt-6 flex justify-end">
-            <Button variant="primary" onClick={() => setShowThemeModal(false)} size="md">
+            <Button
+              variant="primary"
+              onClick={() => setShowThemeModal(false)}
+              size="md"
+            >
               اعمال و بستن
             </Button>
           </div>
@@ -125,7 +141,8 @@ export function AppHeader({ onOpenNewAppointment }: AppHeaderProps) {
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-400">آدرس اندپوینت:</span>
               <code className="text-xs text-brand-primary font-mono bg-slate-900 px-2 py-1 rounded">
-                {import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1/admin'}
+                {import.meta.env.VITE_API_URL ||
+                  "http://localhost:8000/api/v1/admin"}
               </code>
             </div>
             <div className="flex items-center justify-between">
@@ -133,22 +150,27 @@ export function AppHeader({ onOpenNewAppointment }: AppHeaderProps) {
               <span
                 className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                   isApiConnected
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                    : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                    : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
                 }`}
               >
-                {isApiConnected ? 'متصل به سرور بک‌اند' : 'سرویس‌دهی لوکال با دیتای آزمایشی'}
+                {isApiConnected
+                  ? "متصل به سرور بک‌اند"
+                  : "سرویس‌دهی لوکال با دیتای آزمایشی"}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-400">احراز هویت:</span>
-              <span className="text-xs text-slate-300">هدر X-Admin-Api-Key</span>
+              <span className="text-xs text-slate-300">
+                هدر X-Admin-Api-Key
+              </span>
             </div>
           </div>
 
           <p className="text-xs text-slate-400 leading-relaxed">
-            در صورت عدم دسترسی به سرور محلی پورت ۸۰۰۰، تمامی تغییرات (ایجاد نوبت، تغییر وضعیت نوبت‌ها، مدیریت خدمات و پرسنل)
-            در حافظه لوکال انجام شده و منشی محترم می‌تواند بدون قطعی به کار خود ادامه دهد.
+            در صورت عدم دسترسی به سرور محلی پورت ۸۰۰۰، تمامی تغییرات (ایجاد
+            نوبت، تغییر وضعیت نوبت‌ها، مدیریت خدمات و پرسنل) در حافظه لوکال
+            انجام شده و منشی محترم می‌تواند بدون قطعی به کار خود ادامه دهد.
           </p>
 
           <div className="flex justify-end gap-2 pt-2">
@@ -162,7 +184,11 @@ export function AppHeader({ onOpenNewAppointment }: AppHeaderProps) {
             >
               تلاش مجدد برای اتصال
             </Button>
-            <Button variant="primary" size="md" onClick={() => setShowApiModal(false)}>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => setShowApiModal(false)}
+            >
               متوجه شدم
             </Button>
           </div>

@@ -80,7 +80,7 @@ export function AppointmentDetailModal({
             </div>
             <div>
               <span className="text-xs text-slate-400 block">شماره تماس مراجع:</span>
-              <span className="text-sm font-bold text-slate-200 dir-ltr text-right">
+              <span className="text-sm font-bold text-slate-200 text-right" dir="ltr">
                 {formatPhone(appointment.customer_phone)}
               </span>
             </div>
@@ -88,7 +88,7 @@ export function AppointmentDetailModal({
 
           <a
             href={`tel:${appointment.customer_phone}`}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/30 font-medium text-xs transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-11 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/30 font-medium text-xs transition-colors"
           >
             <Phone className="w-4 h-4" />
             <span>تماس تلفنی</span>

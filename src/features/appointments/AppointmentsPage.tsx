@@ -123,7 +123,7 @@ export function AppointmentsPage() {
             onClick={() => setIsNewOpen(true)}
             className="h-11 px-4 sm:px-5 font-semibold text-xs sm:text-sm shadow-lg shadow-black/20"
           >
-            <Plus className="w-4 h-4 stroke-[3]" />
+            <Plus className="w-4 h-4 stroke-3" />
             <span>ثبت نوبت تلفنی</span>
           </Button>
         </div>
@@ -137,7 +137,7 @@ export function AppointmentsPage() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shrink-0 transition-all select-none min-h-[44px] ${
+              className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shrink-0 transition-all select-none min-h-11 ${
                 isActive
                   ? 'bg-brand-primary text-white shadow-md shadow-black/20'
                   : 'bg-slate-900/90 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-800'
@@ -270,11 +270,11 @@ export function AppointmentsPage() {
               >
                 <a
                   href={`tel:${apt.customer_phone}`}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 min-h-[38px] rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-200 transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 min-h-9.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-200 transition-colors"
                   title="تماس مستقیم با مراجع"
                 >
                   <Phone className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="dir-ltr text-[11px]">{formatPhone(apt.customer_phone)}</span>
+                  <span className="text-[11px]" dir="ltr">{formatPhone(apt.customer_phone)}</span>
                 </a>
 
                 <div className="flex items-center gap-2">
